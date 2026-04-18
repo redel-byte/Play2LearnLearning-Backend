@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Http\Requests\RegisterRequest;
 use App\Http\Requests\LoginRequest;
+use App\Http\Requests\UpdateProfileRequest;
 use App\Http\Resources\UserResource;
 use App\Models\Role;
 use App\Models\User;
@@ -75,6 +76,19 @@ class AuthController extends Controller
     {
         return response()->json([
             'user' => new UserResource(auth()->user()->load(['roles', 'badges']))
+        ]);
+    }
+
+    public function updateProfile(UpdateProfileRequest $request)
+    {
+        $user = $request->user();
+
+        $user->fill($request->validated());
+        $user->save();
+
+        return response()->json([
+            'message' => 'Profile updated successfully',
+            'user' => new UserResource($user->fresh()->load(['roles', 'badges']))
         ]);
     }
 
