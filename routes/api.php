@@ -20,6 +20,7 @@ Route::middleware('auth:api')->group(function () {
     });
     Route::post('/logout', [AuthController::class, 'logout']);
     Route::get('/me', [AuthController::class, 'me']);
+    Route::patch('/me', [AuthController::class, 'updateProfile']);
     Route::post('/refresh', [AuthController::class, 'refresh']);
 
     Route::get('/attempts/my-history', [AttemptController::class, 'myHistory']);
@@ -39,6 +40,7 @@ Route::middleware('auth:api')->group(function () {
     Route::post('/attempts/{attempt}/answers', [AttemptController::class, 'submit']);
 
     Route::get('/admin/users', [UserManagementController::class, 'index']);
+    Route::get('/admin/permissions', [UserManagementController::class, 'permissions']);
     Route::get('/admin/users/{user}', [UserManagementController::class, 'show']);
     Route::patch('/admin/users/{user}', [UserManagementController::class, 'update']);
 });
