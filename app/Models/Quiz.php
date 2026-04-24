@@ -72,7 +72,7 @@ final class Quiz extends Model
 
     public function getTotalPointsAttribute(): int
     {
-        return $this->questions()->sum('points');
+        return (int) $this->questions()->sum('points');
     }
 
     public function getAverageScoreAttribute(): float
