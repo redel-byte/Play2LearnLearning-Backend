@@ -16,7 +16,9 @@ final class QuizQueryService
     {
         $query = Quiz::query();
 
-        if (!$user->isAdmin()) {
+        if ($request->boolean('mine_only')) {
+            $query->byCreator($user);
+        } elseif (!$user->isAdmin()) {
             $query->accessibleBy($user);
         }
 

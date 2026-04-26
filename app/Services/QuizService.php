@@ -81,6 +81,7 @@ final class QuizService
                 ->map(fn (Question $question): array => [
                     'type' => $question->type,
                     'prompt' => $question->prompt,
+                    'explanation' => $question->explanation,
                     'points' => $question->points,
                     'position' => $question->position,
                     'choices' => $question->choices
@@ -135,6 +136,7 @@ final class QuizService
             $question->fill([
                 'type' => $questionData['type'],
                 'prompt' => $questionData['prompt'],
+                'explanation' => $questionData['explanation'] ?? null,
                 'points' => $questionData['points'],
                 'position' => $questionData['position'],
             ]);
