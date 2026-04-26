@@ -26,6 +26,7 @@ final class UpdateQuizRequest extends FormRequest
             'questions.*.id' => ['sometimes', 'uuid'],
             'questions.*.type' => ['required_with:questions', 'in:multiple_choice,single_choice,true_false,short_answer'],
             'questions.*.prompt' => ['required_with:questions', 'string', 'min:3'],
+            'questions.*.explanation' => ['nullable', 'string'],
             'questions.*.points' => ['required_with:questions', 'integer', 'min:1', 'max:100'],
             'questions.*.position' => ['required_with:questions', 'integer', 'min:1'],
             'questions.*.choices' => ['nullable', 'array'],

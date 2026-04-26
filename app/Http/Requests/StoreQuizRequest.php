@@ -26,6 +26,7 @@ final class StoreQuizRequest extends FormRequest
             'questions' => ['required', 'array', 'min:1'],
             'questions.*.type' => ['required', 'in:multiple_choice,single_choice,true_false,short_answer'],
             'questions.*.prompt' => ['required', 'string', 'min:3'],
+            'questions.*.explanation' => ['nullable', 'string'],
             'questions.*.points' => ['required', 'integer', 'min:1', 'max:100'],
             'questions.*.position' => ['required', 'integer', 'min:1'],
             'questions.*.choices' => ['nullable', 'array'],
