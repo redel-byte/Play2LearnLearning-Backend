@@ -16,7 +16,7 @@ final class UserManagementController extends Controller
 {
     public function index(Request $request): ResourceCollection
     {
-        abort_unless($request->user()->isAdmin(), 403);
+        abort_unless($this->canViewUsers($request->user()), 403);
 
         $relationships = ['roles', 'badges'];
         if (Schema::hasTable('permission_user')) {
@@ -41,7 +41,7 @@ final class UserManagementController extends Controller
 
     public function permissions(Request $request): ResourceCollection
     {
-        abort_unless($request->user()->isAdmin(), 403);
+        abort_unless($this->canManageRoles($request->user()), 403);
 
         $permissions = Permission::query()
             ->orderBy('name')
@@ -52,7 +52,7 @@ final class UserManagementController extends Controller
 
     public function show(Request $request, User $user): UserResource
     {
-        abort_unless($request->user()->isAdmin(), 403);
+        abort_unless($this->canViewUsers($request->user()), 403);
 
         $relationships = ['roles.permissions', 'badges'];
         if (Schema::hasTable('permission_user')) {
@@ -64,7 +64,9 @@ final class UserManagementController extends Controller
 
     public function update(Request $request, User $user): UserResource
     {
-        abort_unless($request->user()->isAdmin(), 403);
+        $actor = $request->user();
+
+        abort_unless($this->canEditUsers($actor) || $this->canManageRoles($actor), 403);
 
         $validated = $request->validate([
             'first_name' => ['sometimes', 'required', 'string', 'max:255'],
@@ -75,6 +77,12 @@ final class UserManagementController extends Controller
             'permissions' => ['sometimes', 'array'],
             'permissions.*' => ['string', 'exists:permissions,name'],
         ]);
+
+        abort_unless(
+            !array_key_exists('roles', $validated) && !array_key_exists('permissions', $validated)
+                || $this->canManageRoles($actor),
+            403
+        );
 
         $user->fill(collect($validated)->only(['first_name', 'last_name', 'is_active'])->all());
         $user->save();
@@ -99,5 +107,23 @@ final class UserManagementController extends Controller
         }
 
         return new UserResource($user->fresh($relationships));
+    }
+
+    private function canViewUsers(User $user): bool
+    {
+        return $user->isAdmin()
+            || $user->hasAnyPermission(['view_user', 'edit_user', 'manage_roles']);
+    }
+
+    private function canEditUsers(User $user): bool
+    {
+        return $user->isAdmin()
+            || $user->hasPermission('edit_user');
+    }
+
+    private function canManageRoles(User $user): bool
+    {
+        return $user->isAdmin()
+            || $user->hasPermission('manage_roles');
     }
 }
