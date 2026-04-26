@@ -16,9 +16,6 @@ final class PermissionResource extends JsonResource
             'description' => $this->description,
             'created_at' => $this->created_at,
             'updated_at' => $this->updated_at,
-            
-            'roles' => $this->whenLoaded('roles', fn() => RoleResource::collection($this->roles)),
         ];
     }
 }
-

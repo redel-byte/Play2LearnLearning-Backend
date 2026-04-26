@@ -18,11 +18,6 @@ final class RoleResource extends JsonResource
             'updated_at' => $this->updated_at,
             
             'permissions' => $this->whenLoaded('permissions', fn() => PermissionResource::collection($this->permissions)),
-            'users_count' => $this->when(
-                $request->has('include_counts'),
-                $this->users_count ?? $this->users()->count()
-            ),
         ];
     }
 }
-

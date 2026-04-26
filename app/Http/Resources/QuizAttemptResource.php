@@ -25,7 +25,6 @@ final class QuizAttemptResource extends JsonResource
             'status' => $this->submitted_at ? 'submitted' : 'in_progress',
             'learner' => $this->whenLoaded('learner', fn () => new UserResource($this->learner)),
             'quiz' => $this->whenLoaded('quiz', fn () => new QuizResource($this->quiz)),
-            'quiz_session' => $this->whenLoaded('quizSession', fn () => new QuizSessionResource($this->quizSession)),
             'answers' => $this->whenLoaded('answers', fn () => AnswerResource::collection($this->answers)),
         ];
     }
