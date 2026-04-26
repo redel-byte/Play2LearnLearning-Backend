@@ -8,11 +8,6 @@ use App\Models\User;
 
 final class QuizPolicy
 {
-    public function viewAny(User $user): bool
-    {
-        return $user->isAdmin() || $user->isTeacher() || $user->isLearner();
-    }
-
     public function view(User $user, Quiz $quiz): bool
     {
         return $user->isAdmin()
