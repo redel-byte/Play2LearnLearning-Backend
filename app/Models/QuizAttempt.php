@@ -8,7 +8,6 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
-use Illuminate\Database\Eloquent\Builder;
 
 final class QuizAttempt extends Model
 {
@@ -40,11 +39,6 @@ final class QuizAttempt extends Model
         return $this->belongsTo(User::class, 'learner_id');
     }
 
-    public function quizSession(): BelongsTo
-    {
-        return $this->belongsTo(QuizSession::class);
-    }
-
     public function quiz(): BelongsTo
     {
         return $this->belongsTo(Quiz::class);
@@ -64,37 +58,6 @@ final class QuizAttempt extends Model
         $endTime = $this->submitted_at ?: now();
         
         return (int) $this->started_at->diffInSeconds($endTime);
-    }
-
-    public function hasPassed(): bool
-    {
-        if (is_null($this->submitted_at)) {
-            return false;
-        }
-
-        $percentage = $this->percentage;
-        
-        return $percentage !== null && $percentage >= $this->quiz->pass_percentage;
-    }
-
-    public function canBeSubmitted(): bool
-    {
-        if ($this->submitted_at) {
-            return false;
-        }
-
-        if ($this->quizSession && !$this->quizSession->isActive()) {
-            return false;
-        }
-
-        if ($this->quiz->time_limit_minutes) {
-            $timeTaken = $this->time_taken;
-            if ($timeTaken && $timeTaken > ($this->quiz->time_limit_minutes * 60)) {
-                return false;
-            }
-        }
-
-        return true;
     }
 
     public function calculateScore(): void
@@ -146,26 +109,6 @@ final class QuizAttempt extends Model
         ]);
 
         return $this->refresh();
-    }
-
-    public function scopeCompleted(Builder $query): Builder
-    {
-        return $query->whereNotNull('submitted_at');
-    }
-
-    public function scopePending(Builder $query): Builder
-    {
-        return $query->whereNull('submitted_at');
-    }
-
-    public function scopeByLearner(Builder $query, User $user): Builder
-    {
-        return $query->where('learner_id', $user->id);
-    }
-
-    public function scopeForQuiz(Builder $query, Quiz $quiz): Builder
-    {
-        return $query->where('quiz_id', $quiz->id);
     }
 
     protected static function booted(): void

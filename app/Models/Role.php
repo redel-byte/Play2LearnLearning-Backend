@@ -21,10 +21,4 @@ final class Role extends Model
         return $this->belongsToMany(Permission::class, 'permission_role')
             ->withPivot('granted_at');
     }
-
-    public function users(): BelongsToMany
-    {
-        return $this->belongsToMany(User::class, 'role_user')
-            ->withPivot('assigned_at');
-    }
 }

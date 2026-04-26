@@ -46,25 +46,4 @@ final class Answer extends Model
     {
         return $this->belongsToMany(Choice::class, 'answer_choice');
     }
-
-    public function getAnswerValueAttribute()
-    {
-        $choices = $this->relationLoaded('selectedChoices')
-            ? $this->selectedChoices
-            : $this->selectedChoices()->get();
-
-        return $choices->isNotEmpty()
-            ? $choices->pluck('id')->all()
-            : $this->text_answer;
-    }
-
-    public function isChoiceAnswer(): bool
-    {
-        return $this->selectedChoices()->exists();
-    }
-
-    public function isTextAnswer(): bool
-    {
-        return !is_null($this->text_answer);
-    }
 }

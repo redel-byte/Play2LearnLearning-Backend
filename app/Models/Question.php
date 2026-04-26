@@ -6,7 +6,6 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
 final class Question extends Model
@@ -17,6 +16,7 @@ final class Question extends Model
         'quiz_id',
         'type',
         'prompt',
+        'explanation',
         'points',
         'position',
     ];
@@ -30,19 +30,9 @@ final class Question extends Model
         'points' => 1,
     ];
 
-    public function quiz(): BelongsTo
-    {
-        return $this->belongsTo(Quiz::class);
-    }
-
     public function choices(): HasMany
     {
         return $this->hasMany(Choice::class)->orderBy('position');
-    }
-
-    public function answers(): HasMany
-    {
-        return $this->hasMany(Answer::class);
     }
 
     public function correctChoices(): HasMany

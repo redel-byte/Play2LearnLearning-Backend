@@ -3,7 +3,6 @@ declare(strict_types=1);
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -36,16 +35,5 @@ final class Badge extends Model
     public function getEarnerCountAttribute(): int
     {
         return $this->learners()->count();
-    }
-
-    public function scopePopular(Builder $query): Builder
-    {
-        return $query->withCount('learners')
-                    ->orderByDesc('learners_count');
-    }
-
-    public function scopeRecent(Builder $query): Builder
-    {
-        return $query->orderByDesc('created_at');
     }
 }
