@@ -44,11 +44,6 @@ trait HasRolesAndPermissions
             || $this->permissions()->where('permissions.name', $permissionName)->exists();
     }
 
-    public function hasAnyRole(array $roleNames): bool
-    {
-        return $this->roles()->whereIn('name', $roleNames)->exists();
-    }
-
     public function hasAnyPermission(array $permissionNames): bool
     {
         $hasAnyDirectPermission = Schema::hasTable('permission_user')
@@ -58,44 +53,12 @@ trait HasRolesAndPermissions
             || $this->permissions()->whereIn('permissions.name', $permissionNames)->exists();
     }
 
-    public function hasAllRoles(array $roleNames): bool
-    {
-        return $this->roles()->whereIn('name', $roleNames)->count() === count($roleNames);
-    }
-
-    public function hasAllPermissions(array $permissionNames): bool
-    {
-        return count(array_intersect($permissionNames, $this->getPermissionNames())) === count($permissionNames);
-    }
-
     public function assignRole(string $roleName): self
     {
         $role = Role::where('name', $roleName)->firstOrFail();
         $this->roles()->syncWithoutDetaching([
             $role->id => ['assigned_at' => now()],
         ]);
-        
-        return $this;
-    }
-
-    public function assignRoles(array $roleNames): self
-    {
-        $roles = Role::whereIn('name', $roleNames)->get();
-        $assignedAt = now();
-        $roleIds = $roles
-            ->pluck('id')
-            ->mapWithKeys(fn (int $roleId) => [$roleId => ['assigned_at' => $assignedAt]])
-            ->all();
-        
-        $this->roles()->syncWithoutDetaching($roleIds);
-        
-        return $this;
-    }
-
-    public function removeRole(string $roleName): self
-    {
-        $role = Role::where('name', $roleName)->firstOrFail();
-        $this->roles()->detach($role->id);
         
         return $this;
     }
@@ -112,11 +75,6 @@ trait HasRolesAndPermissions
         $this->roles()->sync($roleIds);
         
         return $this;
-    }
-
-    public function getRoleNames(): array
-    {
-        return $this->roles()->pluck('name')->toArray();
     }
 
     public function getPermissionNames(): array
@@ -153,11 +111,6 @@ trait HasRolesAndPermissions
 
     public function canManageUsers(): bool
     {
-        return $this->hasPermission('create_user') || $this->isAdmin();
-    }
-
-    public function canViewAnalytics(): bool
-    {
-        return $this->hasPermission('view_analytics') || $this->isAdmin();
+        return $this->hasAnyPermission(['view_user', 'edit_user', 'manage_roles']) || $this->isAdmin();
     }
 }
