@@ -10,6 +10,11 @@ final class UserResource extends JsonResource
 {
     public function toArray(Request $request): array
     {
+        $viewer = $request->user();
+        $canSeePrivateUserData = optional($viewer)->isAdmin()
+            || optional($viewer)->id === $this->id
+            || optional($viewer)->hasAnyPermission(['view_user', 'edit_user', 'manage_roles']);
+
         return [
             'id' => $this->id,
             'email' => $this->email,
@@ -24,7 +29,7 @@ final class UserResource extends JsonResource
             'direct_permissions' => $this->whenLoaded('directPermissions', fn () => PermissionResource::collection($this->directPermissions)),
             'permissions' => $this->whenLoaded('permissions', fn () => PermissionResource::collection($this->permissions)),
             'permission_names' => $this->when(
-                optional($request->user())->isAdmin(),
+                $canSeePrivateUserData,
                 $this->getPermissionNames()
             ),
             'badges' => $this->whenLoaded('badges', fn () => BadgeResource::collection($this->badges)),
@@ -44,11 +49,11 @@ final class UserResource extends JsonResource
             'is_teacher' => $this->isTeacher(),
             'is_learner' => $this->isLearner(),
             'email_verified_at' => $this->when(
-                optional($request->user())->isAdmin() || optional($request->user())->id === $this->id,
+                $canSeePrivateUserData,
                 $this->email_verified_at
             ),
             'deleted_at' => $this->when(
-                optional($request->user())->isAdmin(),
+                optional($viewer)->isAdmin(),
                 $this->deleted_at
             ),
         ];
