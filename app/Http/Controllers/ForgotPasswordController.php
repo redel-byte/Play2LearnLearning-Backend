@@ -3,18 +3,11 @@
 namespace App\Http\Controllers;
 
 use App\Http\Requests\ForgotPasswordRequest;
-use Illuminate\Http\Request;
-use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\Password;
 
 
 class ForgotPasswordController extends Controller
 {
-    public function showLinkRequestForm()
-    {
-        return view('auth.forgot-password');
-    }
-
     public function sendResetLinkEmail(ForgotPasswordRequest $request)
     {
         $status = Password::sendResetLink(
