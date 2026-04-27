@@ -49,6 +49,10 @@ final class QuizSession extends Model
             return false;
         }
 
+        if ($this->starts_at && now() < $this->starts_at) {
+            return false;
+        }
+
         if ($this->ends_at && now() > $this->ends_at) {
             return false;
         }
