@@ -109,10 +109,6 @@ final class Quiz extends Model
 
     public function canUserAttempt(User $user): bool
     {
-        if ($this->creator_id === $user->id) {
-            return false;
-        }
-
         $attemptCount = $user->quizAttempts()
             ->where('quiz_id', $this->id)
             ->count();
