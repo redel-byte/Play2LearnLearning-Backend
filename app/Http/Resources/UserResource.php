@@ -32,7 +32,6 @@ final class UserResource extends JsonResource
                 $canSeePrivateUserData,
                 $this->getPermissionNames()
             ),
-            'badges' => $this->whenLoaded('badges', fn () => BadgeResource::collection($this->badges)),
             'total_points' => $this->when(
                 $request->boolean('include_stats') || $request->routeIs('admin.users.*'),
                 (int) $this->quizAttempts()->sum('score')
