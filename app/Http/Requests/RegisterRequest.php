@@ -24,7 +24,7 @@ final class RegisterRequest extends FormRequest
                 'string',
                 'regex:/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^A-Za-z0-9\s])\S{8,}$/',
             ],
-            'role' => ['nullable', 'string', Rule::in(['learner', 'teacher', 'student', 'etudient'])],
+            'role' => ['nullable', 'string', Rule::notIn(['admin']), Rule::in(['learner', 'teacher', 'student', 'etudient'])],
         ];
     }
 
@@ -42,6 +42,7 @@ final class RegisterRequest extends FormRequest
             'email.unique' => 'This email is already registered.',
             'password.required' => 'Password is required.',
             'password.regex' => 'Password must be at least 8 characters and include uppercase, lowercase, number, and special character.',
+            'role.not_in' => 'Admin accounts cannot be created from registration.',
             'role.in' => 'Please choose Student or Teacher.',
         ];
     }
