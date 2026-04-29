@@ -125,8 +125,16 @@ final class QuizService
 
     private function syncQuestions(Quiz $quiz, array $questionsData): void
     {
-        $existingQuestionIds = $quiz->questions()->pluck('id')->all();
-        $persistedQuestionIds = [];
+        $existingQuestions = $quiz->questions()->get(['id', 'position']);
+        $existingQuestionIds = $existingQuestions->pluck('id')->all();
+        $submittedQuestionIds = collect($questionsData)->pluck('id')->filter()->all();
+
+        $questionIdsToDelete = array_diff($existingQuestionIds, $submittedQuestionIds);
+        if ($questionIdsToDelete !== []) {
+            $quiz->questions()->whereIn('id', $questionIdsToDelete)->delete();
+        }
+
+        $this->temporarilyMoveQuestionPositions($quiz, $questionsData, $submittedQuestionIds, $existingQuestions->pluck('position')->all());
 
         foreach ($questionsData as $questionData) {
             $question = isset($questionData['id'])
@@ -143,19 +151,21 @@ final class QuizService
             $question->save();
 
             $this->syncChoices($question, $questionData['choices'] ?? []);
-            $persistedQuestionIds[] = $question->id;
-        }
-
-        $questionIdsToDelete = array_diff($existingQuestionIds, $persistedQuestionIds);
-        if ($questionIdsToDelete !== []) {
-            $quiz->questions()->whereIn('id', $questionIdsToDelete)->delete();
         }
     }
 
     private function syncChoices(Question $question, array $choicesData): void
     {
-        $existingChoiceIds = $question->choices()->pluck('id')->all();
-        $persistedChoiceIds = [];
+        $existingChoices = $question->choices()->get(['id', 'position']);
+        $existingChoiceIds = $existingChoices->pluck('id')->all();
+        $submittedChoiceIds = collect($choicesData)->pluck('id')->filter()->all();
+
+        $choiceIdsToDelete = array_diff($existingChoiceIds, $submittedChoiceIds);
+        if ($choiceIdsToDelete !== []) {
+            $question->choices()->whereIn('id', $choiceIdsToDelete)->delete();
+        }
+
+        $this->temporarilyMoveChoicePositions($question, $choicesData, $submittedChoiceIds, $existingChoices->pluck('position')->all());
 
         foreach ($choicesData as $choiceData) {
             $choice = isset($choiceData['id'])
@@ -168,13 +178,44 @@ final class QuizService
                 'position' => $choiceData['position'],
             ]);
             $choice->save();
+        }
+    }
 
-            $persistedChoiceIds[] = $choice->id;
+    private function temporarilyMoveQuestionPositions(Quiz $quiz, array $questionsData, array $submittedQuestionIds, array $existingPositions): void
+    {
+        if ($submittedQuestionIds === []) {
+            return;
         }
 
-        $choiceIdsToDelete = array_diff($existingChoiceIds, $persistedChoiceIds);
-        if ($choiceIdsToDelete !== []) {
-            $question->choices()->whereIn('id', $choiceIdsToDelete)->delete();
+        $maxPosition = max([
+            0,
+            ...$existingPositions,
+            ...collect($questionsData)->pluck('position')->filter()->all(),
+        ]);
+
+        foreach (array_values($submittedQuestionIds) as $index => $questionId) {
+            $quiz->questions()
+                ->whereKey($questionId)
+                ->update(['position' => $maxPosition + $index + 1]);
+        }
+    }
+
+    private function temporarilyMoveChoicePositions(Question $question, array $choicesData, array $submittedChoiceIds, array $existingPositions): void
+    {
+        if ($submittedChoiceIds === []) {
+            return;
+        }
+
+        $maxPosition = max([
+            0,
+            ...$existingPositions,
+            ...collect($choicesData)->pluck('position')->filter()->all(),
+        ]);
+
+        foreach (array_values($submittedChoiceIds) as $index => $choiceId) {
+            $question->choices()
+                ->whereKey($choiceId)
+                ->update(['position' => $maxPosition + $index + 1]);
         }
     }
 }
