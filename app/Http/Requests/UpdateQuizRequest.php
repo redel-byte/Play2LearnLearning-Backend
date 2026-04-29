@@ -36,4 +36,47 @@ final class UpdateQuizRequest extends FormRequest
             'questions.*.choices.*.position' => ['required_with:questions.*.choices', 'integer', 'min:1'],
         ];
     }
+
+    public function withValidator($validator): void
+    {
+        $validator->after(function ($validator): void {
+            $questions = $this->input('questions', []);
+            $positions = collect($questions)->pluck('position');
+
+            if ($positions->count() !== $positions->unique()->count()) {
+                $validator->errors()->add('questions', 'Question positions must be unique.');
+            }
+
+            foreach ($questions as $index => $question) {
+                $type = $question['type'] ?? null;
+                $choices = collect($question['choices'] ?? []);
+                $choicePositions = $choices->pluck('position');
+                $correctCount = $choices->where('is_correct', true)->count();
+
+                if ($choicePositions->count() !== $choicePositions->unique()->count()) {
+                    $validator->errors()->add("questions.{$index}.choices", 'Choice positions must be unique.');
+                }
+
+                if (in_array($type, ['multiple_choice', 'single_choice', 'true_false'], true) && $choices->count() < 2) {
+                    $validator->errors()->add("questions.{$index}.choices", 'Choice-based questions require at least two choices.');
+                }
+
+                if ($type === 'multiple_choice' && $correctCount < 1) {
+                    $validator->errors()->add("questions.{$index}.choices", 'Multiple choice questions require at least one correct answer.');
+                }
+
+                if ($type === 'single_choice' && $correctCount !== 1) {
+                    $validator->errors()->add("questions.{$index}.choices", 'Single choice questions require exactly one correct answer.');
+                }
+
+                if ($type === 'true_false' && ($choices->count() !== 2 || $correctCount !== 1)) {
+                    $validator->errors()->add("questions.{$index}.choices", 'True/false questions require exactly two choices with one correct answer.');
+                }
+
+                if ($type === 'short_answer' && $choices->isNotEmpty()) {
+                    $validator->errors()->add("questions.{$index}.choices", 'Short answer questions cannot define choices.');
+                }
+            }
+        });
+    }
 }
