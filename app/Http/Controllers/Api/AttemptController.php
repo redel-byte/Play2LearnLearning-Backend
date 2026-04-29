@@ -38,7 +38,13 @@ final class AttemptController extends Controller
             ]);
         }
 
-        $quiz = Quiz::with('creator')->where('access_code', $code)->firstOrFail();
+        $quiz = Quiz::with('creator')->where('access_code', $code)->first();
+        if (!$quiz) {
+            return response()->json([
+                'message' => 'No quiz was found for this code.',
+            ], 404);
+        }
+
         abort_unless($quiz->isAvailableToUser($request->user()), 403, 'This quiz is not available.');
 
         return response()->json([
@@ -106,4 +112,3 @@ $answer = $attempt->answers()->updateOrCreate(
         return QuizAttemptResource::collection($attempts);
     }
 }
-
