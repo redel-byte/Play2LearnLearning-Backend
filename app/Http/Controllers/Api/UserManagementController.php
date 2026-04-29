@@ -18,7 +18,7 @@ final class UserManagementController extends Controller
     {
         abort_unless($this->canViewUsers($request->user()), 403);
 
-        $relationships = ['roles', 'badges'];
+        $relationships = ['roles'];
         if (Schema::hasTable('permission_user')) {
             $relationships[] = 'directPermissions';
         }
@@ -54,7 +54,7 @@ final class UserManagementController extends Controller
     {
         abort_unless($this->canViewUsers($request->user()), 403);
 
-        $relationships = ['roles.permissions', 'badges'];
+        $relationships = ['roles.permissions'];
         if (Schema::hasTable('permission_user')) {
             $relationships[] = 'directPermissions';
         }
@@ -101,7 +101,7 @@ final class UserManagementController extends Controller
             $user->directPermissions()->sync($payload);
         }
 
-        $relationships = ['roles.permissions', 'badges'];
+        $relationships = ['roles.permissions'];
         if (Schema::hasTable('permission_user')) {
             $relationships[] = 'directPermissions';
         }
